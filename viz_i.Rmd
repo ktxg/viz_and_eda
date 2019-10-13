@@ -1,0 +1,148 @@
+---
+title: "'ggplot' 1"
+author: "Katie"
+date: "10/12/2019"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse) 
+library(ggridges) 
+```
+
+## Create the weather data 
+
+```{r load_data, cache = TRUE}
+weather_df = 
+  rnoaa::meteo_pull_monitors(c("USW00094728", "USC00519397", "USS0023B17S"),
+                      var = c("PRCP", "TMIN", "TMAX"), 
+                      date_min = "2017-01-01",
+                      date_max = "2017-12-31") %>%
+  mutate(
+    name = recode(id, USW00094728 = "CentralPark_NY", 
+                      USC00519397 = "Waikiki_HA",
+                      USS0023B17S = "Waterhole_WA"),
+    tmin = tmin / 10,
+    tmax = tmax / 10) %>%
+  select(name, id, everything())
+
+weather_df
+```
+
+## Create a ggplot 
+
+```{r}
+ggplot(weather_df, aes(x = tmin, y = tmax)) + 
+  geom_point() 
+```
+
+## Alternate way of making this plot 
+
+```{r}
+weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax)) + 
+  geom_point() 
+```
+
+## Saving initial plots (Jeff mostly doesn't do it this way) 
+
+```{r}
+scatterplot = 
+weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax)) + 
+  geom_point() 
+
+scatterplot 
+```
+
+## Adding color 
+
+```{r}
+weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax)) + 
+  geom_point(aes(color = name), alpha = .4)  
+```
+
+## Why do 'aes' positions matter? 
+
+Here's the first plot: 
+```{r}
+## this makes one smooth line without the gray uncertainty band around it
+weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax)) + 
+  geom_point(aes(color = name), alpha = .4) + 
+  geom_smooth(se = FALSE)  
+```
+
+vs. 
+
+The second plot: 
+```{r}
+## this makes 3 different colored smooth lines for each of the locations 
+weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax, color = name)) + 
+  geom_point(alpha = .4) + 
+  geom_smooth(se = FALSE) 
+```
+
+## Time to facet! 
+
+```{r}
+## creates 3 smooth lines that are the same color as the locations so is kinda hard to see
+weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax, color = name)) + 
+  geom_point(alpha = .4) + 
+  geom_smooth(se = FALSE) + 
+  facet_grid(~name)
+
+## creates 3 smooths lines that stand out better amongst the locations and is easier to see  
+weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax)) + 
+  geom_point(aes(color = name), alpha = .4) + 
+  geom_smooth(se = FALSE) + 
+  facet_grid(~name)
+```
+
+## This is fine. But not interesting. 
+
+```{r}
+weather_df %>% 
+  ggplot(aes(x= date, y = tmax, color = name)) + 
+  geom_point(aes(size = prcp), alpha = .35) + 
+  geom_smooth(size = 2, se = FALSE)
+```
+
+Learning Assessment: Write a code chain that starts with weather_df; focuses only on Central Park, converts temperatures to Fahrenheit, makes a scatterplot of min vs. max temperature, and overlays a linear regression line (using options in geom_smooth()). 
+
+```{r}
+weather_df %>% 
+  filter(name == "CentralPark_NY") %>% 
+  mutate(
+    tmax = (tmax * 9 / 5) + 32, 
+    tmin= (tmin * 9 / 5) + 32) %>% 
+ggplot(aes(x = tmin ,y = tmax)) +
+  geom_point(alpha = .5) +
+  geom_smooth(method = "lm", se = FALSE) 
+
+## Answer Key Solution  
+weather_df %>% 
+  filter(name == "CentralPark_NY") %>% 
+  mutate(tmax_fahr = tmax * (9 / 5) + 32,
+         tmin_fahr = tmin * (9 / 5) + 32) %>% 
+  ggplot(aes(x = tmin_fahr, y = tmax_fahr)) +
+  geom_point(alpha = .5) + 
+  geom_smooth(method = "lm", se = FALSE)
+```
+
+## Some extra stuff 
+
+```{r}
+
+```
+
+
+
+
+
