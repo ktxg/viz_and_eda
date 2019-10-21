@@ -8,6 +8,9 @@ output: github_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
+## Q: Do I need to say install.packages() in the code or can I just write it in the console? 
+install.packages("hexbin")
+
 library(tidyverse) 
 library(ggridges) 
 ```
@@ -34,6 +37,11 @@ weather_df
 ## Create a ggplot 
 
 ```{r}
+## there are three things you need to make a plot: 
+## 1. the dataset itself
+## 2. what's going to be on the x- and y-axes
+## 3. what kind of a plot to make
+
 ggplot(weather_df, aes(x = tmin, y = tmax)) + 
   geom_point() 
 ```
@@ -60,35 +68,49 @@ scatterplot
 ## Adding color 
 
 ```{r}
+## different aesthetic mappings 
 weather_df %>% 
   ggplot(aes(x = tmin, y = tmax)) + 
   geom_point(aes(color = name), alpha = .4)  
+
+## alpha blending adds transparency to different elements of your plot
+## 0 is completely transparent, 1 is not transparent at all 
 ```
 
-## Why do 'aes' positions matter? 
+## Why does 'aes' position matter? 
 
 Here's the first plot: 
 ```{r}
-## this makes one smooth line without the gray uncertainty band around it
+## creates a smooth curve that goes through the middle of all of the data points
+## the color aesthetic mapping only applies to the place where you define that color aesthetic mapping 
+## the color aesthetic mapping for this plot is defined only in geom_point
+
 weather_df %>% 
   ggplot(aes(x = tmin, y = tmax)) + 
   geom_point(aes(color = name), alpha = .4) + 
   geom_smooth(se = FALSE)  
+
+## geom_smooth FALSE turns off the gray uncertainty band around the curve
 ```
 
 vs. 
 
 The second plot: 
 ```{r}
-## this makes 3 different colored smooth lines for each of the locations 
+## this makes 3 different colored smooth curves for each of the locations
+## the color aesthetic mapping is defined everywhere in the plot 
+## the result is that both the individual points are colored and the smooth curves from geom_smooth are colored to group-specific colors
+## so color is now applied everywhere 
+
 weather_df %>% 
   ggplot(aes(x = tmin, y = tmax, color = name)) + 
   geom_point(alpha = .4) + 
-  geom_smooth(se = FALSE) 
+  geom_smooth(se = FALSE)  
 ```
 
 ## Time to facet! 
 
+We want to take this one panel plot and turn it into a three panel plot, where each of the panels is its own weather station. 
 ```{r}
 ## creates 3 smooth lines that are the same color as the locations so is kinda hard to see
 weather_df %>% 
@@ -96,8 +118,9 @@ weather_df %>%
   geom_point(alpha = .4) + 
   geom_smooth(se = FALSE) + 
   facet_grid(~name)
+## facet_grid will create a grid of individual panels; (~name) means we want that variable to be in the columns 
 
-## creates 3 smooths lines that stand out better amongst the locations and is easier to see  
+## the code below creates 3 smooth lines that stand out better amongst the locations and is easier to see  
 weather_df %>% 
   ggplot(aes(x = tmin, y = tmax)) + 
   geom_point(aes(color = name), alpha = .4) + 
@@ -108,15 +131,22 @@ weather_df %>%
 ## This is fine. But not interesting. 
 
 ```{r}
+## what's the seasonal trend in each of these locations? 
+## date vs. max temp 
+## change inside geom_point the aesthetic mapping so that size=precipitation
+## so we get both info about temperature and amount of precipitation on any particular day 
+## make alpha .35 to make the indvl points fade into the background a bit 
+
 weather_df %>% 
   ggplot(aes(x= date, y = tmax, color = name)) + 
   geom_point(aes(size = prcp), alpha = .35) + 
-  geom_smooth(size = 2, se = FALSE)
+  geom_smooth(size = 2, se = FALSE)   
 ```
 
 Learning Assessment: Write a code chain that starts with weather_df; focuses only on Central Park, converts temperatures to Fahrenheit, makes a scatterplot of min vs. max temperature, and overlays a linear regression line (using options in geom_smooth()). 
 
 ```{r}
+## My solution 
 weather_df %>% 
   filter(name == "CentralPark_NY") %>% 
   mutate(
@@ -139,9 +169,35 @@ weather_df %>%
 ## Some extra stuff 
 
 ```{r}
+weather_df %>% 
+  ggplot(aes(x= date, y = tmax, color = name)) + 
+  geom_smooth(size = 2, se = FALSE)
 
+## Don't need to always have the same 'geom_' functions, can choose what we want. 
+## Without 'geom_point,' there's no scatterplot but we can still see the smooth curves.  
+## When defining ggplots, we can pick and choose which things we want to show 
+## and that are most useful to us. 
 ```
 
+## 2D density 
+
+```{r}
+## install.packages("hexbin")
+weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax)) + 
+  geom_hex() 
+
+## geom_bin2d: same thing as hexbin but with squares instead 
+weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax)) + 
+  geom_bin2d()
+```
+
+## More kinds of plots 
+
+```{r}
+
+```
 
 
 
