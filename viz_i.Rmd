@@ -5,14 +5,14 @@ date: "10/12/2019"
 output: github_document
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-
-## Q: Do I need to say install.packages() in the code or can I just write it in the console? 
-install.packages("hexbin")
 
 library(tidyverse) 
 library(ggridges) 
+
+## Q: Do I need to say install.packages() in the code or can I just write it in the console? 
+## install.packages("hexbin")
 ```
 
 ## Create the weather data 
@@ -90,7 +90,7 @@ weather_df %>%
   geom_point(aes(color = name), alpha = .4) + 
   geom_smooth(se = FALSE)  
 
-## geom_smooth FALSE turns off the gray uncertainty band around the curve
+## geom_smooth(se = FALSE) turns off the gray uncertainty band (aka standard error) around the line
 ```
 
 vs. 
@@ -169,36 +169,124 @@ weather_df %>%
 ## Some extra stuff 
 
 ```{r}
+## Don't need to always have the same 'geom_' functions, can choose what you want
 weather_df %>% 
   ggplot(aes(x= date, y = tmax, color = name)) + 
   geom_smooth(size = 2, se = FALSE)
 
-## Don't need to always have the same 'geom_' functions, can choose what we want. 
-## Without 'geom_point,' there's no scatterplot but we can still see the smooth curves.  
-## When defining ggplots, we can pick and choose which things we want to show 
-## and that are most useful to us. 
+## Without 'geom_point,' there's no scatterplot but we can still see the smooth curves 
+## When defining ggplots, you can pick and choose the things you want to show and that are the most useful to you 
 ```
 
 ## 2D density 
 
 ```{r}
+## if using 'hex' need to install hexbin first 
 ## install.packages("hexbin")
-weather_df %>% 
-  ggplot(aes(x = tmin, y = tmax)) + 
-  geom_hex() 
+## weather_df %>% 
+##   ggplot(aes(x = tmin, y = tmax)) + 
+##   geom_hex() 
 
-## geom_bin2d: same thing as hexbin but with squares instead 
+## this will give us a 2D scatterplot since a lot of data is overlapping
+## it won't show every single datapoint but will show us the # in that pixel  
+
+## geom_bin2d: does basically the same thing as hexbin but with little squares instead 
+## don't need to install anything beforehand 
 weather_df %>% 
   ggplot(aes(x = tmin, y = tmax)) + 
   geom_bin2d()
 ```
 
-## More kinds of plots 
+## More kinds of plots!! 
 
+Time for univariate plots, or plots with one variable: 
 ```{r}
+## histogram shows us where the data falls in the distribution 
+## 'color' gives us the shaded region on the outside of the bars
+## 'fill' is the stuff on the inside 
 
+weather_df %>% 
+  ggplot(aes(x = tmax, fill = name)) + 
+  geom_histogram(position = "dodge")   
+
+weather_df %>% 
+  ggplot(aes(x = tmax, fill = name)) + 
+  geom_histogram() + 
+  facet_grid(~name)      
 ```
 
+Density plots! 
+
+```{r}
+weather_df %>% 
+  ggplot(aes(x = tmax, fill = name)) + 
+  geom_density(alpha = .3) 
+
+## jeff likes density plots more than he likes histograms 
+## density plots convey similar kinds of information just smoothed out a bit 
+## you get all of them overlapping so it's easy to see what's going on at any one location but you can also make comparisons between locations relatively easily 
+```
+
+Some other univariate plots: 
+
+```{r}
+weather_df %>% 
+  ggplot(aes(x = name, y = tmax)) + 
+  geom_boxplot() 
+```
+
+Violin plots!
+
+```{r}
+weather_df %>% 
+  ggplot(aes(x = name, y = tmax)) + 
+  geom_violin() 
+
+## if you turn your head to the side, then it becomes a density plot related to that variable 
+## it gives you the same kind of information as a boxplot and density plot 
+```
+
+Ridge plots! 
+
+```{r}
+weather_df %>% 
+  ggplot(aes(x = tmax, y = name)) +
+  geom_density_ridges() 
+
+## what we see are each of the densities (density for waterhole, for waikiki, etc.)
+## when you have larger groups (20+) it's harder to see densities stacked on top of each other, so ridge plots display them better 
+## so when you have lots of groups and you want to do some comparisons across those groups, boxplots and density plots by themselves might not be enough 
+## violin plots or ridge plots might be a useful way around that 
+```
+
+## Saving a plot 
+
+```{r}
+ggp_ridge_temp = 
+  weather_df %>% 
+  ggplot(aes(x = tmax, y = name)) +
+  geom_density_ridges() 
+
+ggsave("ggplot_temp_ridge.pdf", ggp_ridge_temp)    
+```
+
+## Embedding plots in R markdown 
+
+Comparing figure widths of 6 vs 12: 
+```{r, fig.width = 6}
+weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax, color = name)) + 
+  geom_point(alpha = .4) + 
+  geom_smooth(se = FALSE)  
+```
+
+```{r, fig.width = 12}
+weather_df %>% 
+  ggplot(aes(x = tmin, y = tmax, color = name)) + 
+  geom_point(alpha = .4) + 
+  geom_smooth(se = FALSE)  
+```
+We can control how they appear via figure width, figure height, and aspect ratio. We can set a width and/or aspect ratio to be like "width = .6 * height". 
 
 
 
